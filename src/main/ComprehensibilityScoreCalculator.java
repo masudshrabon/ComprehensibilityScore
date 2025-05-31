@@ -128,13 +128,11 @@ public class ComprehensibilityScoreCalculator {
             // Detect import
             Matcher importMatcher = importPattern.matcher(line);
             if (importMatcher.find()) {
-                String[] parts = importMatcher.group(1).split("\\.");
-                String imp = parts[parts.length - 1];
-                if (!isExcludedVariable(imp)) {
-                    entities.add(new String[]{imp, "Import"});
+                String fullImport = importMatcher.group(1);  // e.g., java.util.Scanner
+                if (!isExcludedVariable(fullImport)) {
+                    entities.add(new String[]{fullImport, "Import"});
                 }
             }
-
             // Detect class
             Matcher classMatcher = classPattern.matcher(line);
             if (classMatcher.find()) {
@@ -199,55 +197,76 @@ public class ComprehensibilityScoreCalculator {
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
 
-        // C# pattern matching
-        Pattern namespacePattern = Pattern.compile("^\\s*namespace\\s+([a-zA-Z0-9_.]+)");
-        Pattern importPattern = Pattern.compile("^\\s*using\\s+([a-zA-Z0-9_.]+);?");
+        // 1) Using / Import
+        Pattern importPattern = Pattern.compile("^\\s*using\\s+([A-Za-z0-9_.]+);");
+
+        // 2) Namespace → Package
+        Pattern namespacePattern = Pattern.compile("^\\s*namespace\\s+([A-Za-z0-9_.]+)");
+
+        // 3) Class declarations
         Pattern classPattern = Pattern.compile("\\bclass\\s+(\\w+)");
-        Pattern methodPattern = Pattern.compile("\\b(?:public|private|protected|internal|static|virtual|override|async)?\\s*\\w+\\s+(\\w+)\\s*\\(");
-        Pattern variablePattern = Pattern.compile("^\\s*(?:public|private|protected|internal)?\\s*\\w+\\s+(\\w+)\\s*(?:=\\s*.*)?;");
+
+        // 4) Method / Constructor / Operator
+        Pattern methodPattern = Pattern.compile(
+            "\\b(?:public|private|protected|internal|static|virtual|override|async|unsafe|sealed|extern)?\\s*" +
+            "(?:[A-Za-z_][A-Za-z0-9_<>,\\s]*?)\\s+" +
+            "(~?\\w+)\\s*\\("
+        );
+
+        // 5) Variable / Field declarations
+     // Only allow true C# types (int, string, var, dynamic, or user‐defined generic names), not "using"
+        Pattern variablePattern = Pattern.compile(
+          "^\\s*(?:public|private|protected|internal|static|readonly|volatile|const)?\\s+" 
+        + "(?:bool|byte|char|decimal|double|float|int|long|object|string|var|dynamic|[A-Za-z_][A-Za-z0-9_<>,]*)\\s+" 
+        + "([A-Za-z_][A-Za-z0-9_]*)\\b" 
+        + "(?:\\s*(?:=|;))"
+        );
 
         while ((line = reader.readLine()) != null) {
-            // Extract namespace
-            Matcher nsMatcher = namespacePattern.matcher(line);
-            if (nsMatcher.find()) {
-                String[] parts = nsMatcher.group(1).split("\\.");
-                String ns = parts[parts.length - 1];
-                if (!isExcludedVariable(ns)) {
-                    entities.add(new String[]{ns, "Namespace"});
+            Matcher m;
+
+            // === 1. USING / IMPORT ===
+            m = importPattern.matcher(line);
+            while (m.find()) {
+                String fullImport = m.group(1);
+                if (!isExcludedVariable(fullImport)) {
+                    entities.add(new String[]{ fullImport, "Import" });
                 }
             }
 
-            // Extract import/using
-            Matcher importMatcher = importPattern.matcher(line);
-            if (importMatcher.find()) {
-                String[] parts = importMatcher.group(1).split("\\.");
-                String imp = parts[parts.length - 1];
-                if (!isExcludedVariable(imp)) {
-                    entities.add(new String[]{imp, "Import"});
+            // === 2. NAMESPACE → Package ===
+            m = namespacePattern.matcher(line);
+            while (m.find()) {
+                String pkg = m.group(1);
+                if (!isExcludedVariable(pkg)) {
+                    entities.add(new String[]{ pkg, "Package" });
                 }
             }
 
-            // Extract class
-            Matcher classMatcher = classPattern.matcher(line);
-            if (classMatcher.find()) {
-                entities.add(new String[]{classMatcher.group(1), "Class"});
+            // === 3. CLASS DECLARATIONS ===
+            m = classPattern.matcher(line);
+            while (m.find()) {
+                String cls = m.group(1);
+                if (!isExcludedVariable(cls)) {
+                    entities.add(new String[]{ cls, "Class" });
+                }
             }
 
-            // Extract methods
-            Matcher methodMatcher = methodPattern.matcher(line);
-            while (methodMatcher.find()) {
-                String methodName = methodMatcher.group(1);
+            // === 4. METHOD / CONSTRUCTOR / OPERATOR ===
+            m = methodPattern.matcher(line);
+            while (m.find()) {
+                String methodName = m.group(1);
                 if (!isExcludedVariable(methodName)) {
-                    entities.add(new String[]{methodName, "Method"});
+                    entities.add(new String[]{ methodName, "Method" });
                 }
             }
 
-            // Extract variables
-            Matcher varMatcher = variablePattern.matcher(line);
-            while (varMatcher.find()) {
-                String variableName = varMatcher.group(1);
-                if (!isExcludedVariable(variableName)) {
-                    entities.add(new String[]{variableName, "Variable"});
+            // === 5. VARIABLE / FIELD DECLARATIONS ===
+            m = variablePattern.matcher(line);
+            while (m.find()) {
+                String varName = m.group(1);
+                if (!isExcludedVariable(varName)) {
+                    entities.add(new String[]{ varName, "Variable" });
                 }
             }
         }
@@ -255,7 +274,6 @@ public class ComprehensibilityScoreCalculator {
         reader.close();
         return entities;
     }
-
 
     // ========== PYTHON  ANALYSIS ==========
     
@@ -378,55 +396,71 @@ public class ComprehensibilityScoreCalculator {
             System.err.println("Error: " + e.getMessage());
         }
     }
+ 
+
     private static List<String[]> extractJavaScriptEntities(String filePath) throws IOException {
         List<String[]> entities = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
 
-        Pattern importPattern = Pattern.compile("import\\s+(?:\\w+\\s+from\\s+)?[\"']([a-zA-Z0-9_/.-]+)[\"'];?");
+
+        Pattern importPattern = Pattern.compile(
+            "\\bimport\\s+(?:.*?\\s+from\\s+)?['\"]([^'\"]+)['\"];?"
+        );
+
         Pattern classPattern = Pattern.compile("\\bclass\\s+(\\w+)");
+
+    
         Pattern functionPattern = Pattern.compile("\\bfunction\\s+(\\w+)\\s*\\(");
-        Pattern arrowFunctionPattern = Pattern.compile("const\\s+(\\w+)\\s*=\\s*\\(.*\\)\\s*=>");
-        Pattern variablePattern = Pattern.compile("\\b(?:let|const|var)\\s+(\\w+)");
+        Pattern arrowFunctionPattern = Pattern.compile("\\b(?:const|let|var)\\s+(\\w+)\\s*=\\s*\\([^)]*\\)\\s*=>");
+
+
+        Pattern variablePattern = Pattern.compile("\\b(?:let|const|var)\\s+(\\w+)\\b");
 
         while ((line = reader.readLine()) != null) {
             Matcher m;
 
-            // Imports (ES6 style)
+     
             m = importPattern.matcher(line);
-            if (m.find()) {
-                String imp = m.group(1);
-                String[] parts = imp.split("/");
-                String impName = parts[parts.length - 1];
-                if (!isExcludedVariable(impName)) {
-                    entities.add(new String[]{impName, "Import"});
+            while (m.find()) {
+                String pkgPath = m.group(1);
+                if (!isExcludedVariable(pkgPath)) {
+                    // Label it "Package" so we’ll split on "/" or "." later if needed
+                    entities.add(new String[]{ pkgPath, "Package" });
                 }
             }
 
-            // Classes
+           
             m = classPattern.matcher(line);
-            if (m.find()) {
-                entities.add(new String[]{m.group(1), "Class"});
+            while (m.find()) {
+                String clsName = m.group(1);
+                if (!isExcludedVariable(clsName)) {
+                    entities.add(new String[]{ clsName, "Class" });
+                }
             }
 
-            // Functions
             m = functionPattern.matcher(line);
-            if (m.find()) {
-                entities.add(new String[]{m.group(1), "Function"});
+            while (m.find()) {
+                String fnName = m.group(1);
+                if (!isExcludedVariable(fnName)) {
+                    entities.add(new String[]{ fnName, "Method" });
+                }
             }
 
-            // Arrow Functions
+         
             m = arrowFunctionPattern.matcher(line);
-            if (m.find()) {
-                entities.add(new String[]{m.group(1), "Function"});
+            while (m.find()) {
+                String arrowFnName = m.group(1);
+                if (!isExcludedVariable(arrowFnName)) {
+                    entities.add(new String[]{ arrowFnName, "Method" });
+                }
             }
 
-            // Variables
             m = variablePattern.matcher(line);
             while (m.find()) {
-                String var = m.group(1);
-                if (!isExcludedVariable(var)) {
-                    entities.add(new String[]{var, "Variable"});
+                String varName = m.group(1);
+                if (!isExcludedVariable(varName)) {
+                    entities.add(new String[]{ varName, "Variable" });
                 }
             }
         }
@@ -588,55 +622,36 @@ public class ComprehensibilityScoreCalculator {
     
 
     // ========== Scoring Logic ==========
-    
-    private static double evaluateEntityScore(String entity) {
-        List<String> words;
-
-        // Check if mixed-case or underscores for standard splitting
-        if (entity.matches(".*[A-Z_-].*")) {
-            words = Arrays.asList(entity.split("(?<=[a-z])(?=[A-Z])|(?<=[A-Z])(?=[A-Z][a-z])|(?<=[a-z])(?=[0-9])|(?<=[0-9])(?=[A-Z])|[-_]"));
-        } else {
-            // Fallback: attempt dictionary-based splitting
-            words = splitByDictionarySegments(entity.toLowerCase());
-        }
-
-        if (words.isEmpty()) return 0.0;
-
-        double total = 0.0;
-        for (String word : words) {
-            total += evaluateWordScore(word.toLowerCase());
-        }
-
-        return total / words.size();
-    }
-
-    private static List<String> splitByDictionarySegments(String entity) {
-        List<String> parts = new ArrayList<>();
-        int i = 0;
-        while (i < entity.length()) {
-            boolean matched = false;
-
-            // Try longest possible dictionary match first
-            for (int j = entity.length(); j > i + 2; j--) {
-                String sub = entity.substring(i, j);
-                if (LOCAL_DICTIONARY.contains(sub)) {
-                    parts.add(sub);
-                    i = j;
-                    matched = true;
-                    break;
-                }
+    private static double evaluateEntityScore(String entity, String type) {
+        if (type.equals("Import")) {
+            // Split on dot, score each part, and average
+            String[] parts = entity.split("\\.");
+            double total = 0.0;
+            int count = 0;
+            for (String part : parts) {
+                double pieceScore = evaluateWordScore(part.toLowerCase());
+                total += pieceScore;
+                count++;
             }
-
-            // If no dictionary match found, take 3-letter partial
-            if (!matched) {
-                int end = Math.min(i + 3, entity.length());
-                parts.add(entity.substring(i, end));
-                i = end;
-            }
+            return (count == 0) ? 0.0 : (total / count);
         }
-        return parts;
-    }
 
+        // For Package / Class / Method / Variable, use camelCase & punctuation split rules
+        String[] words = entity.split(
+            "(?<=[a-z])(?=[A-Z])" +       // camelCase split
+            "|(?<=[A-Z])(?=[A-Z][a-z])" + // ALLCaps → ProperCase
+            "|(?<=[a-z])(?=[0-9])" +      // letter→digit
+            "|(?<=[0-9])(?=[A-Za-z])" +   // digit→letter
+            "|[-_]"                       // hyphens or underscores
+        );
+        if (words.length == 0) return 0.0;
+
+        double totalScore = 0.0;
+        for (String w : words) {
+            totalScore += evaluateWordScore(w.toLowerCase());
+        }
+        return totalScore / words.length;
+    }
 
     // Delegates to full or partial match scoring
     private static double evaluateWordScore(String word) {
@@ -678,7 +693,8 @@ public class ComprehensibilityScoreCalculator {
         for (String[] entityData : entities) {
             String entity = entityData[0];
             String type = entityData[1];
-            double score = evaluateEntityScore(entity);
+             double score = evaluateEntityScore(entity, type);
+;
 
             String readability;
             if (score == 1) readability = "Well Readable";
