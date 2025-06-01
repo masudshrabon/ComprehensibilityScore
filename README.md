@@ -172,5 +172,3 @@ This project was created as part of a thesis aimed at exploring how understandab
   <li>Students working on source code quality</li>
   <li>Instructors building tools for coding best practices</li>
 </ul>
-<h2>License and Usage</h2>
-This project was developed for academic and educational use. If you plan to reference it in your research or academic work, please consider citing the thesis or the author. For any industrial or commercial use, kindly reach out to the author for permission.
