@@ -143,12 +143,17 @@ This project was created as part of a thesis aimed at exploring how understandab
     <li><strong>N:</strong> Total number of entities</li>
   </ul>
 
-  <h3>3. Final Score Range</h3>
-  <ul>
-    <li><strong>100%:</strong> Excellent readability</li>
-    <li><strong>50%–99%:</strong> Moderate readability</li>
-    <li><strong>&lt; 50%:</strong> Poor readability</li>
-  </ul>
+  <h3>3. Readability Score Categories</h3>
+
+| Score Range (%) | Category              | Interpretation                                                                 |
+|-----------------|----------------------|---------------------------------------------------------------------------------|
+| 90–100%         | Excellent Readability | Highly readable and easy to comprehend; minimal effort required.               |
+| 70–89%          | Moderate Readability  | Generally readable with some effort; may include minor complexities.           |
+| 50–69%          | Fair Readability      | Readability issues present; understanding may require effort.                  |
+| 30–49%          | Poor Readability      | Difficult to understand due to complexity or inconsistency.                    |
+| 0–29%           | Very Poor Readability | Extremely hard to read; likely to hinder comprehension and maintenance.        |
+
+
 </section>
 
 
