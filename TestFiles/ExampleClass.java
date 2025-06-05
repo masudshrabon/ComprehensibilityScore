@@ -2,11 +2,14 @@ package ExampleClass;
 
 
 import java.util.Scanner;
-
+import java.util.concurrent.atomic.AtomicBoolean;
 
 public class ExampleClass {
     int employeeSalary;
     String empName;
+    int _d_1;
+    int util;
+    int calcemployee;
     int EmployeeID;
     int see;
     public void CalSalaryX() {

@@ -10,11 +10,22 @@ public class ComprehensibilityScoreCalculator {
 	   // Variables to exclude from readability scoring (e.g., loop counters)
     private static final String[] EXCLUDED_VARIABLES = {"i", "j"};
     private static final Set<String> BUILTIN_READABLES = new HashSet<>(Arrays.asList(
-    	    "id", "url", "api", "http", "ip", "sql", "xml", "json", "db", "cpu", "gpu"
+    	    "id", "url", "api", "http", "ip", "sql", "xml", "json", "db", "cpu", "gpu","https",
+    	    "uid", "eid", "cid", "pid", "rid", "nid", "tid",      // ID variants  
+    	    "msg", "desc","dest", "txt", "str", "val",            // short words  
+    	    "cmd", "opt", "arg", "flag",                          // CLI-style tokens  
+    	    "pwd", "usr", "auth", "sess",                         // auth-related  
+    	    "req", "res", "resp", "conn",                         // networking  
+    	    "mem", "ram", "rom", "os", "fs",                      // system  
+    	    "io", "ui", "ux", "dbg",                              // interaction/debug  
+    	    "svc", "cfg", "lib", "mod",                           // config/code  
+    	    "img", "btn", "nav", "ctrl", "alt", "hdr", "tbl", "src",// UI and HTML terms  
+    	    // two‐letter prepositions:
+    	    "as", "at", "by", "in", "of", "on", "to", "up"
     	));
 
     // Dictionary for scoring, loaded once when the program starts
-    private static final Set<String> LOCAL_DICTIONARY = loadDictionary("Dictionary(Modified).txt");
+    private static final Set<String> LOCAL_DICTIONARY = loadDictionary("Dictionary.txt");
     // Class to store metadata for each detected entity
     private static class EntityInfo {
         String entity;
@@ -46,6 +57,7 @@ public class ComprehensibilityScoreCalculator {
         // Prompt for input path (file or folder)
         System.out.print("Enter the path to the project directory: ");
         String folderPath = scanner.nextLine().replace("\\", "/");
+      
 
         // Route to appropriate analysis handler
         switch (choice) {
@@ -629,8 +641,8 @@ public class ComprehensibilityScoreCalculator {
             double total = 0.0;
             int count = 0;
             for (String part : parts) {
-                double pieceScore = evaluateWordScore(part.toLowerCase());
-                total += pieceScore;
+                if (part.isEmpty() || part.matches("^\\d+$")) continue; // skip numbers
+                total += evaluateWordScore(part.toLowerCase());
                 count++;
             }
             return (count == 0) ? 0.0 : (total / count);
@@ -638,20 +650,32 @@ public class ComprehensibilityScoreCalculator {
 
         // For Package / Class / Method / Variable, use camelCase & punctuation split rules
         String[] words = entity.split(
-            "(?<=[a-z])(?=[A-Z])" +       // camelCase split
-            "|(?<=[A-Z])(?=[A-Z][a-z])" + // ALLCaps → ProperCase
-            "|(?<=[a-z])(?=[0-9])" +      // letter→digit
-            "|(?<=[0-9])(?=[A-Za-z])" +   // digit→letter
-            "|[-_]"                       // hyphens or underscores
+            "(?<=[a-z])(?=[A-Z])" +
+            "|(?<=[A-Z])(?=[A-Z][a-z])" +
+            "|(?<=[a-z])(?=[0-9])" +
+            "|(?<=[0-9])(?=[A-Za-z])" +
+            "|[-_]"
         );
-        if (words.length == 0) return 0.0;
-
+        
         double totalScore = 0.0;
+        int validCount = 0;
+
         for (String w : words) {
-            totalScore += evaluateWordScore(w.toLowerCase());
+            String lower = w.toLowerCase();
+
+            if (lower.isEmpty() || lower.equals("_") || lower.matches("^\\d+$")) {
+                continue;
+            }
+
+            totalScore += evaluateWordScore(lower);
+            validCount++;
         }
-        return totalScore / words.length;
+
+        return validCount == 0 ? 0.0 : totalScore / validCount;
     }
+
+
+
 
     // Delegates to full or partial match scoring
     private static double evaluateWordScore(String word) {
@@ -712,7 +736,8 @@ public class ComprehensibilityScoreCalculator {
     
     
     private static void writeDetailedCSV(Map<File, List<EntityInfo>> fileEntityMap, String language) {
-        String fileName = language + "_Detailed_Comprehensibility_Report.csv";
+        String fileName = "Detailed_Comprehensibility_Report.csv";  
+
         try (PrintWriter writer = new PrintWriter(fileName)) {
             writer.println("Class Name with Path,Entity Name,Entity Type,Comprehensibility Score,Comprehensibility Category");
 
@@ -720,10 +745,8 @@ public class ComprehensibilityScoreCalculator {
                 String filePath = entry.getKey().getPath();
                 List<EntityInfo> entities = entry.getValue();
 
-                // Print file/class path as a section header (in first column)
                 writer.printf("%s,,,,%n", filePath);
 
-                // Print entity rows (leave file column blank)
                 for (EntityInfo info : entities) {
                     writer.printf(",%s,%s,%.2f,%s%n",
                             info.entity, info.type, info.score, info.readability);
@@ -736,8 +759,9 @@ public class ComprehensibilityScoreCalculator {
         }
     }
 
+
     private static void writeSummaryCSV(Map<File, List<EntityInfo>> fileEntityMap, String language) {
-        String fileName = language + "_Summary_Comprehensibility_Report.csv";
+        String fileName = "Summary_Comprehensibility_Report.csv"; 
         try (PrintWriter writer = new PrintWriter(fileName)) {
             writer.println("Class Name with Path,Comprehensibility Score");
 
