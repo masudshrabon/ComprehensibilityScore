@@ -52,7 +52,7 @@ public class ComprehensibilityScoreCalculator {
         System.out.println("5. C/C++");
         System.out.print("Enter your choice (1–5): ");
         int choice = scanner.nextInt();
-        scanner.nextLine(); // consume newline
+        scanner.nextLine();
         
         // Prompt for input path (file or folder)
         System.out.print("Enter the path to the project directory: ");
@@ -140,7 +140,7 @@ public class ComprehensibilityScoreCalculator {
             // Detect import
             Matcher importMatcher = importPattern.matcher(line);
             if (importMatcher.find()) {
-                String fullImport = importMatcher.group(1);  // e.g., java.util.Scanner
+                String fullImport = importMatcher.group(1);  
                 if (!isExcludedVariable(fullImport)) {
                     entities.add(new String[]{fullImport, "Import"});
                 }
@@ -163,7 +163,7 @@ public class ComprehensibilityScoreCalculator {
             // Detect variables
             Matcher varMatcher = variablePattern.matcher(line);
             while (varMatcher.find()) {
-                String variableName = varMatcher.group(3); // use group 3 for variable name
+                String variableName = varMatcher.group(3); 
                 if (!isExcludedVariable(variableName)) {
                     entities.add(new String[]{variableName, "Variable"});
                 }
@@ -226,7 +226,6 @@ public class ComprehensibilityScoreCalculator {
         );
 
         // 5) Variable / Field declarations
-     // Only allow true C# types (int, string, var, dynamic, or user‐defined generic names), not "using"
         Pattern variablePattern = Pattern.compile(
           "^\\s*(?:public|private|protected|internal|static|readonly|volatile|const)?\\s+" 
         + "(?:bool|byte|char|decimal|double|float|int|long|object|string|var|dynamic|[A-Za-z_][A-Za-z0-9_<>,]*)\\s+" 
@@ -342,8 +341,7 @@ public class ComprehensibilityScoreCalculator {
             if (fromImportMatcher.find()) {
                 String module = fromImportMatcher.group(1);
                 String symbol = fromImportMatcher.group(2);
-                String alias = fromImportMatcher.group(3); // May be null
-
+                String alias = fromImportMatcher.group(3); 
                 if (!isExcludedVariable(module)) {
                     entities.add(new String[]{module, "Module"});
                 }
@@ -437,7 +435,7 @@ public class ComprehensibilityScoreCalculator {
             while (m.find()) {
                 String pkgPath = m.group(1);
                 if (!isExcludedVariable(pkgPath)) {
-                    // Label it "Package" so we’ll split on "/" or "." later if needed
+            
                     entities.add(new String[]{ pkgPath, "Package" });
                 }
             }
