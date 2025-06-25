@@ -13,7 +13,7 @@ public class ComprehensibilityScoreCalculator {
     	    "id", "url", "api", "http", "ip", "sql", "xml", "json", "db", "cpu", "gpu","https",
     	    "uid", "eid", "cid", "pid", "rid", "nid", "tid",      // ID variants  
     	    "msg", "desc","dest", "txt", "str", "val",            // short words  
-    	    "cmd", "opt", "arg", "flag",                          // CLI-style tokens  
+    	    "cmd", "opt", "arg", "flag",                  // CLI-style tokens  
     	    "pwd", "usr", "auth", "sess",                         // auth-related  
     	    "req", "res", "resp", "conn",                         // networking  
     	    "mem", "ram", "rom", "os", "fs",                      // system  
@@ -633,18 +633,31 @@ public class ComprehensibilityScoreCalculator {
 
     // ========== Scoring Logic ==========
     private static double evaluateEntityScore(String entity, String type) {
-        if (type.equals("Import")) {
-            // Split on dot, score each part, and average
-            String[] parts = entity.split("\\.");
-            double total = 0.0;
-            int count = 0;
-            for (String part : parts) {
-                if (part.isEmpty() || part.matches("^\\d+$")) continue; // skip numbers
-                total += evaluateWordScore(part.toLowerCase());
-                count++;
-            }
-            return (count == 0) ? 0.0 : (total / count);
-        }
+    	if (type.equals("Import")) {
+    	    // Split on dot or underscore first
+    	    String[] parts = entity.split("[._]");
+    	    double total = 0.0;
+    	    int count = 0;
+    	    for (String part : parts) {
+    	        if (part.isEmpty() || part.matches("^\\d+$")) continue;
+
+    	        // Split part further using camelCase / PascalCase etc.
+    	        String[] subParts = part.split(
+    	            "(?<=[a-z])(?=[A-Z])" +
+    	            "|(?<=[A-Z])(?=[A-Z][a-z])" +
+    	            "|(?<=[a-z])(?=[0-9])" +
+    	            "|(?<=[0-9])(?=[A-Za-z])" +
+    	            "|[-_]"
+    	        );
+
+    	        for (String sub : subParts) {
+    	            if (sub.isEmpty() || sub.equals("_") || sub.matches("^\\d+$")) continue;
+    	            total += evaluateWordScore(sub.toLowerCase());
+    	            count++;
+    	        }
+    	    }
+    	    return (count == 0) ? 0.0 : (total / count);
+    	}
 
         // For Package / Class / Method / Variable, use camelCase & punctuation split rules
         String[] words = entity.split(

@@ -60098,6 +60098,7 @@ cluttery
 cluttering
 clutterment
 clutters
+cmake 
 cmdg
 cmdr
 cnemapophysis
@@ -65225,6 +65226,8 @@ confides
 confiding
 confidingly
 confidingness
+config
+configs
 configurable
 configural
 configurate
@@ -66356,6 +66359,7 @@ constellation
 constellations
 constellatory
 conster
+constexpr
 consternate
 consternated
 consternating
@@ -89704,6 +89708,7 @@ dizzying
 dizzyingly
 dizzily
 dizziness
+django
 djagatay
 djagoong
 djakarta
@@ -132938,6 +132943,7 @@ hasan
 hasard
 hasenpfeffer
 hash
+hashmap
 hashab
 hashabi
 hashed
@@ -138482,6 +138488,7 @@ hymnologist
 hymns
 hymnwise
 himp
+him 
 himple
 himself
 himward
@@ -138661,6 +138668,7 @@ hyped
 hypegiaphobia
 hypenantron
 hiper
+his
 hyper
 hyperabelian
 hyperabsorption
@@ -140507,6 +140515,7 @@ hirundine
 hirundinidae
 hirundinous
 hirundo
+his
 hish
 hisingerite
 hisis
@@ -159161,6 +159170,7 @@ jarringly
 jarringness
 jars
 jarsful
+jarsigner 
 jarvey
 jarveys
 jarvy
@@ -159264,13 +159274,16 @@ jauped
 jauping
 jaups
 java
+javac
 javahai
 javali
 javan
 javanee
 javanese
 javanine
+javap
 javas
+javax
 javel
 javelin
 javelina
@@ -172950,6 +172963,7 @@ locutorium
 locutorship
 locuttoria
 loddigesia
+lodash
 lode
 lodeman
 lodemanage
@@ -186464,6 +186478,7 @@ myoblast
 myoblastic
 myoblasts
 miocardia
+my
 myocardia
 myocardiac
 myocardial
@@ -207876,6 +207891,7 @@ nummus
 numnah
 nump
 numps
+numpy
 numskull
 numskulled
 numskulledness
@@ -278550,6 +278566,7 @@ scientize
 scientolism
 scientology
 scientologist
+scikit
 scil
 scyld
 scilicet
@@ -359059,6 +359076,7 @@ vrow
 vrows
 vucom
 vucoms
+vue
 vugg
 vuggy
 vuggs
