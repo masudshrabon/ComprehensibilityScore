@@ -50,7 +50,7 @@ public class ComprehensibilityScoreCalculator {
         System.out.println("3. Python");
         System.out.println("4. JavaScript");
         System.out.println("5. C/C++");
-        System.out.print("Enter your choice (1–5): ");
+        System.out.print("Enter your choice (1-5): ");
         int choice = scanner.nextInt();
         scanner.nextLine();
         
