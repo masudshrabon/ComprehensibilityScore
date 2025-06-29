@@ -20,10 +20,8 @@ This project was created as part of a thesis aimed at exploring how understandab
   <li><strong>Clone or Download:</strong> Download or clone the repository to your local machine.</li>
   <li><strong>Prepare Dictionary:</strong> Ensure the <code>dictionary.txt</code> dictionary file is located in the project root directory.
   <br><em>(You can use a custom dictionary file if needed.)</em></li>
-  <li><strong>Compile the Java Code:</strong></li>
-  <pre><code>javac ComprehensibilityScoreCalculator.java</code></pre>
-  <li><strong>Run the Program:</strong></li>
-  <pre><code>java ComprehensibilityScoreCalculator</code></pre>
+  <li><strong>Run the Program using jar file:</strong></li>
+  <pre><code>java -jar ComprehensibilityScoreCalculator.jar</code></pre>
   <li><strong>Choose the Language:</strong> Select one of the supported languages from the menu:
     <ul>
       <li>1 - Java</li>
@@ -36,8 +34,8 @@ This project was created as part of a thesis aimed at exploring how understandab
   <li><strong>Enter the Path:</strong> Provide the full path to your project directory or file when prompted. Windows users can paste the path directly—backslashes will be automatically handled.</li>
   <li><strong>View Output:</strong> Two CSV files will be generated in your project folder:
     <ul>
-      <li><code>Language_Detailed_Comprehensibility_Report.csv</code></li>
-      <li><code>Language_Summary_Comprehensibility_Report.csv</code></li>
+      <li><code>Detailed_Comprehensibility_Report.csv</code></li>
+      <li><code>Summary_Comprehensibility_Report.csv</code></li>
     </ul>
   </li>
 </ol>
@@ -77,6 +75,7 @@ This project was created as part of a thesis aimed at exploring how understandab
     <thead>
       <tr>
         <th>File</th>
+        <th>Class Average</th>
         <th>Entity Name</th>
         <th>Type</th>
         <th>Score</th>
@@ -86,6 +85,15 @@ This project was created as part of a thesis aimed at exploring how understandab
     <tbody>
       <tr>
         <td>/path/Example.java</td>
+        <td>AVERAGE VALUE: 0.58</td>
+        <td></td>
+        <td></td>
+        <td></td>
+        <td></td>
+      </tr>
+      <tr>
+        <td></td>
+        <td></td>
         <td>empName</td>
         <td>Variable</td>
         <td>0.75</td>
@@ -93,12 +101,14 @@ This project was created as part of a thesis aimed at exploring how understandab
       </tr>
       <tr>
         <td></td>
+        <td></td>
         <td>calculateSalary</td>
         <td>Method</td>
         <td>1.00</td>
         <td>Well Readable</td>
       </tr>
       <tr>
+        <td></td>
         <td></td>
         <td>x</td>
         <td>Variable</td>
