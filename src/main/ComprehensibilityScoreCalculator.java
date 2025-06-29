@@ -747,19 +747,28 @@ public class ComprehensibilityScoreCalculator {
     
     
     private static void writeDetailedCSV(Map<File, List<EntityInfo>> fileEntityMap, String language) {
-        String fileName = "Detailed_Comprehensibility_Report.csv";  
+        File outputDir = new File("Output");
+        if (!outputDir.exists()) outputDir.mkdirs(); 
+
+        String fileName = "Output/Detailed_Comprehensibility_Report.csv";
 
         try (PrintWriter writer = new PrintWriter(fileName)) {
-            writer.println("Class Name with Path,Entity Name,Entity Type,Comprehensibility Score,Comprehensibility Category");
+         
+            writer.println("Class Name with Path,Class Average,Entity Name,Entity Type,Comprehensibility Score,Comprehensibility Category");
 
             for (Map.Entry<File, List<EntityInfo>> entry : fileEntityMap.entrySet()) {
                 String filePath = entry.getKey().getPath();
                 List<EntityInfo> entities = entry.getValue();
 
-                writer.printf("%s,,,,%n", filePath);
+               
+                double avgScore = entities.stream().mapToDouble(e -> e.score).average().orElse(0.0);
 
+             
+                writer.printf("%s,AVERAGE VALUE: %.2f,,,,%n", filePath, avgScore);
+
+           
                 for (EntityInfo info : entities) {
-                    writer.printf(",%s,%s,%.2f,%s%n",
+                    writer.printf(",,%s,%s,%.2f,%s%n",
                             info.entity, info.type, info.score, info.readability);
                 }
             }
@@ -771,8 +780,14 @@ public class ComprehensibilityScoreCalculator {
     }
 
 
+
+
     private static void writeSummaryCSV(Map<File, List<EntityInfo>> fileEntityMap, String language) {
-        String fileName = "Summary_Comprehensibility_Report.csv"; 
+        File outputDir = new File("Output");
+        if (!outputDir.exists()) outputDir.mkdirs();
+
+        String fileName = "Output/Summary_Comprehensibility_Report.csv";
+
         try (PrintWriter writer = new PrintWriter(fileName)) {
             writer.println("Class Name with Path,Comprehensibility Score");
 
@@ -789,10 +804,15 @@ public class ComprehensibilityScoreCalculator {
 
             double average = count == 0 ? 0.0 : total / count;
             writer.printf("Average Comprehensibility Score,%.2f%n", average);
+
             System.out.println("Summary CSV report generated: " + fileName);
+            System.out.printf("Average Comprehensibility Score: %.2f%n", average);
+            System.out.println("------------------------------------------------------------------------------------------------------------------------------------------------");
+
         } catch (IOException e) {
             System.err.println("Error writing summary CSV: " + e.getMessage());
         }
     }
+
 
 }
