@@ -20,7 +20,7 @@ This project was created as part of a thesis aimed at exploring how understandab
   <li><strong>Clone or Download:</strong> Download or clone the repository to your local machine.</li>
   <li><strong>Prepare Dictionary:</strong> Ensure the <code>dictionary.txt</code> dictionary file is located in the project root directory.
   <br><em>(You can use a custom dictionary file if needed.)</em></li>
-  <li><strong>Run the Program using jar file:</strong></li>
+  <li><strong>Run the Program using jar file: (Ensure the <code>ComprehensibilityScoreCalculator.jar</code> and <code>dictionary.txt</code> file are in the same directory)</strong></li>
   <pre><code>java -jar ComprehensibilityScoreCalculator.jar</code></pre>
   <li><strong>Choose the Language:</strong> Select one of the supported languages from the menu:
     <ul>
