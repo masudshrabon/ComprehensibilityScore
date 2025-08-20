@@ -21,7 +21,29 @@ public class ComprehensibilityScoreCalculator {
     	    "svc", "cfg", "lib", "mod",                           // config/code  
     	    "img", "btn", "nav", "ctrl", "alt", "hdr", "tbl", "src",// UI and HTML terms  
     	    // two‐letter prepositions:
-    	    "as", "at", "by", "in", "of", "on", "to", "up"
+    	    "as", "at", "by", "in", "of", "on", "to", "up",
+    	    "is","are","was","were","am","for","with",
+    	    
+    	    "tmp", "num", "max", "min", "len", "err", "val",
+    	    // Data structures
+    	    "list", "map", "set", "arr", "dict", "queue", "stack", "node", "elem", 
+
+    	    // Time-related terms
+    	    "time", "date", "epoch", "timestamp", "delay", "interval", 
+
+    	    // Security-related terms
+    	    "key", "token", "salt", "hash", "enc", "cert", "auth", "ssl", "rsa", "aes", 
+
+    	    // Common variable terms
+    	   "temp", 
+
+    	    // Common error handling terms
+    	    "err",
+
+    	    // Common database terms
+    	    "sql", "db"
+
+    
     	));
 
     // Dictionary for scoring, loaded once when the program starts
