@@ -7,47 +7,40 @@ import java.util.regex.Pattern;
 import java.util.Scanner;
 
 public class ComprehensibilityScoreCalculator {
-	   // Variables to exclude from readability scoring (e.g., loop counters)
+    // Variables to exclude from readability scoring (e.g., loop counters)
     private static final String[] EXCLUDED_VARIABLES = {"i", "j"};
     private static final Set<String> BUILTIN_READABLES = new HashSet<>(Arrays.asList(
-    	    "id", "url", "api", "http", "ip", "sql", "xml", "json", "db", "cpu", "gpu","https",
-    	    "uid", "eid", "cid", "pid", "rid", "nid", "tid",      // ID variants  
-    	    "msg", "desc","dest", "txt", "str", "val",            // short words  
-    	    "cmd", "opt", "arg", "flag",                  // CLI-style tokens  
-    	    "pwd", "usr", "auth", "sess",                         // auth-related  
-    	    "req", "res", "resp", "conn",                         // networking  
-    	    "mem", "ram", "rom", "os", "fs",                      // system  
-    	    "io", "ui", "ux", "dbg",                              // interaction/debug  
-    	    "svc", "cfg", "lib", "mod",                           // config/code  
-    	    "img", "btn", "nav", "ctrl", "alt", "hdr", "tbl", "src",// UI and HTML terms  
-    	    // two‐letter prepositions:
-    	    "as", "at", "by", "in", "of", "on", "to", "up",
-    	    "is","are","was","were","am","for","with",
-    	    
-    	    "tmp", "num", "max", "min", "len", "err", "val",
-    	    // Data structures
-    	    "list", "map", "set", "arr", "dict", "queue", "stack", "node", "elem", 
-
-    	    // Time-related terms
-    	    "time", "date", "epoch", "timestamp", "delay", "interval", 
-
-    	    // Security-related terms
-    	    "key", "token", "salt", "hash", "enc", "cert", "auth", "ssl", "rsa", "aes", 
-
-    	    // Common variable terms
-    	   "temp", 
-
-    	    // Common error handling terms
-    	    "err",
-
-    	    // Common database terms
-    	    "sql", "db"
-
-    
-    	));
+        "id", "url", "api", "http", "ip", "sql", "xml", "json", "db", "cpu", "gpu","https",
+        "uid", "eid", "cid", "pid", "rid", "nid", "tid",
+        "msg", "desc","dest", "txt", "str", "val",
+        "cmd", "opt", "arg", "flag",
+        "pwd", "usr", "auth", "sess",
+        "req", "res", "resp", "conn",
+        "mem", "ram", "rom", "os", "fs",
+        "io", "ui", "ux", "dbg",
+        "svc", "cfg", "lib", "mod",
+        "img", "btn", "nav", "ctrl", "alt", "hdr", "tbl", "src",
+        // two‐letter prepositions:
+        "as", "at", "by", "in", "of", "on", "to", "up",
+        "is","are","was","were","am","for","with",
+        "tmp", "num", "max", "min", "len", "err", "val",
+        // Data structures
+        "list", "map", "set", "arr", "dict", "queue", "stack", "node", "elem",
+        // Time-related terms
+        "time", "date", "epoch", "timestamp", "delay", "interval",
+        // Security-related terms
+        "key", "token", "salt", "hash", "enc", "cert", "auth", "ssl", "rsa", "aes",
+        // Common variable terms
+        "temp",
+        // Common error handling terms
+        "err",
+        // Common database terms
+        "sql", "db"
+    ));
 
     // Dictionary for scoring, loaded once when the program starts
     private static final Set<String> LOCAL_DICTIONARY = loadDictionary("Dictionary.txt");
+
     // Class to store metadata for each detected entity
     private static class EntityInfo {
         String entity;
@@ -75,11 +68,10 @@ public class ComprehensibilityScoreCalculator {
         System.out.print("Enter your choice (1-5): ");
         int choice = scanner.nextInt();
         scanner.nextLine();
-        
+
         // Prompt for input path (file or folder)
         System.out.print("Enter the path to the project directory: ");
         String folderPath = scanner.nextLine().replace("\\", "/");
-      
 
         // Route to appropriate analysis handler
         switch (choice) {
@@ -89,25 +81,22 @@ public class ComprehensibilityScoreCalculator {
             case 2:
                 runCSharpAnalysis(folderPath);
                 break;
-
             case 3:
                 runPythonAnalysis(folderPath);
                 break;
             case 4:
-            	 runJavaScriptAnalysis(folderPath);
+                runJavaScriptAnalysis(folderPath);
                 break;
             case 5:
-            	runCppAnalysis(folderPath);
-               break;
+                runCppAnalysis(folderPath);
+                break;
             default:
                 System.out.println("Invalid choice.");
         }
     }
 
-
     // ========== JAVA ANALYSIS ==========
 
-    // Analyzes either a single Java file or an entire folder recursively
     private static void runJavaAnalysis(String path) {
         try {
             List<File> javaFiles = getFilesOrSingle(path, ".java");
@@ -134,22 +123,21 @@ public class ComprehensibilityScoreCalculator {
             System.err.println("Error: " + e.getMessage());
         }
     }
-    
- // Uses regex patterns to extract all relevant entities from Java files
+
+    // Uses regex patterns to extract entities from Java files (imports removed)
     private static List<String[]> extractEntities(String filePath) throws IOException {
         List<String[]> entities = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
 
-        // Patterns for different Java elements
+      
         Pattern packagePattern = Pattern.compile("^\\s*package\\s+([a-zA-Z0-9_.]+);?");
-        Pattern importPattern = Pattern.compile("^\\s*import\\s+([a-zA-Z0-9_.]+);?");
         Pattern classPattern = Pattern.compile("\\bclass\\s+(\\w+)");
         Pattern methodPattern = Pattern.compile("(public|private|protected|static|final|void)?\\s+\\w+\\s+(\\w+)\\s*\\(");
-        Pattern variablePattern = Pattern.compile("^(?!\\s*(class|package|import)).*?\\b(\\w+)\\s+(\\w+)\\s*(=\\s*.*)?;");
+        Pattern variablePattern = Pattern.compile("^(?!\\s*(class|package)).*?\\b(\\w+)\\s+(\\w+)\\s*(=\\s*.*)?;");
 
         while ((line = reader.readLine()) != null) {
-            // Detect package
+            // Detect package (kept)
             Matcher pkgMatcher = packagePattern.matcher(line);
             if (pkgMatcher.find()) {
                 String[] parts = pkgMatcher.group(1).split("\\.");
@@ -159,14 +147,6 @@ public class ComprehensibilityScoreCalculator {
                 }
             }
 
-            // Detect import
-            Matcher importMatcher = importPattern.matcher(line);
-            if (importMatcher.find()) {
-                String fullImport = importMatcher.group(1);  
-                if (!isExcludedVariable(fullImport)) {
-                    entities.add(new String[]{fullImport, "Import"});
-                }
-            }
             // Detect class
             Matcher classMatcher = classPattern.matcher(line);
             if (classMatcher.find()) {
@@ -185,7 +165,7 @@ public class ComprehensibilityScoreCalculator {
             // Detect variables
             Matcher varMatcher = variablePattern.matcher(line);
             while (varMatcher.find()) {
-                String variableName = varMatcher.group(3); 
+                String variableName = varMatcher.group(3);
                 if (!isExcludedVariable(variableName)) {
                     entities.add(new String[]{variableName, "Variable"});
                 }
@@ -195,7 +175,7 @@ public class ComprehensibilityScoreCalculator {
         reader.close();
         return entities;
     }
-    
+
     // ========== C#  ANALYSIS ==========
 
     private static void runCSharpAnalysis(String path) {
@@ -225,49 +205,37 @@ public class ComprehensibilityScoreCalculator {
         }
     }
 
-
+ 
     private static List<String[]> extractCSharpEntities(String filePath) throws IOException {
         List<String[]> entities = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
 
-        // 1) Using / Import
-        Pattern importPattern = Pattern.compile("^\\s*using\\s+([A-Za-z0-9_.]+);");
-
-        // 2) Namespace → Package
+        // Namespace → Package (kept)
         Pattern namespacePattern = Pattern.compile("^\\s*namespace\\s+([A-Za-z0-9_.]+)");
 
-        // 3) Class declarations
+        // Class declarations
         Pattern classPattern = Pattern.compile("\\bclass\\s+(\\w+)");
 
-        // 4) Method / Constructor / Operator
+        // Method / Constructor / Operator
         Pattern methodPattern = Pattern.compile(
             "\\b(?:public|private|protected|internal|static|virtual|override|async|unsafe|sealed|extern)?\\s*" +
             "(?:[A-Za-z_][A-Za-z0-9_<>,\\s]*?)\\s+" +
             "(~?\\w+)\\s*\\("
         );
 
-        // 5) Variable / Field declarations
+        // Variable / Field declarations
         Pattern variablePattern = Pattern.compile(
-          "^\\s*(?:public|private|protected|internal|static|readonly|volatile|const)?\\s+" 
-        + "(?:bool|byte|char|decimal|double|float|int|long|object|string|var|dynamic|[A-Za-z_][A-Za-z0-9_<>,]*)\\s+" 
-        + "([A-Za-z_][A-Za-z0-9_]*)\\b" 
+          "^\\s*(?:public|private|protected|internal|static|readonly|volatile|const)?\\s+"
+        + "(?:bool|byte|char|decimal|double|float|int|long|object|string|var|dynamic|[A-Za-z_][A-Za-z0-9_<>,]*)\\s+"
+        + "([A-Za-z_][A-Za-z0-9_]*)\\b"
         + "(?:\\s*(?:=|;))"
         );
 
         while ((line = reader.readLine()) != null) {
             Matcher m;
 
-            // === 1. USING / IMPORT ===
-            m = importPattern.matcher(line);
-            while (m.find()) {
-                String fullImport = m.group(1);
-                if (!isExcludedVariable(fullImport)) {
-                    entities.add(new String[]{ fullImport, "Import" });
-                }
-            }
-
-            // === 2. NAMESPACE → Package ===
+            // NAMESPACE → Package
             m = namespacePattern.matcher(line);
             while (m.find()) {
                 String pkg = m.group(1);
@@ -276,7 +244,7 @@ public class ComprehensibilityScoreCalculator {
                 }
             }
 
-            // === 3. CLASS DECLARATIONS ===
+            // CLASS
             m = classPattern.matcher(line);
             while (m.find()) {
                 String cls = m.group(1);
@@ -285,7 +253,7 @@ public class ComprehensibilityScoreCalculator {
                 }
             }
 
-            // === 4. METHOD / CONSTRUCTOR / OPERATOR ===
+            // METHOD / CONSTRUCTOR / OPERATOR
             m = methodPattern.matcher(line);
             while (m.find()) {
                 String methodName = m.group(1);
@@ -294,7 +262,7 @@ public class ComprehensibilityScoreCalculator {
                 }
             }
 
-            // === 5. VARIABLE / FIELD DECLARATIONS ===
+            // VARIABLE / FIELD
             m = variablePattern.matcher(line);
             while (m.find()) {
                 String varName = m.group(1);
@@ -309,7 +277,7 @@ public class ComprehensibilityScoreCalculator {
     }
 
     // ========== PYTHON  ANALYSIS ==========
-    
+
     private static void runPythonAnalysis(String path) {
         try {
             List<File> pyFiles = getFilesOrSingle(path, ".py");
@@ -335,46 +303,19 @@ public class ComprehensibilityScoreCalculator {
             System.err.println("Error: " + e.getMessage());
         }
     }
-    
+
     
     private static List<String[]> extractPythonEntities(String filePath) throws IOException {
         List<String[]> entities = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
 
-        Pattern importPattern = Pattern.compile("^\\s*import\\s+(\\w+)");
-        Pattern fromImportPattern = Pattern.compile("^\\s*from\\s+(\\w+)\\s+import\\s+(\\w+)(?:\\s+as\\s+(\\w+))?");
         Pattern classPattern = Pattern.compile("^\\s*class\\s+(\\w+)");
         Pattern methodPattern = Pattern.compile("^\\s*def\\s+(\\w+)\\s*\\(");
         Pattern variablePattern = Pattern.compile("^\\s*(\\w+)\\s*=\\s*");
 
         while ((line = reader.readLine()) != null) {
             Matcher m;
-
-            Matcher importMatcher = importPattern.matcher(line);
-            if (importMatcher.find()) {
-                String module = importMatcher.group(1);
-                if (!isExcludedVariable(module)) {
-                    entities.add(new String[]{module, "Module"});
-                }
-            }
-
-            Matcher fromImportMatcher = fromImportPattern.matcher(line);
-            if (fromImportMatcher.find()) {
-                String module = fromImportMatcher.group(1);
-                String symbol = fromImportMatcher.group(2);
-                String alias = fromImportMatcher.group(3); 
-                if (!isExcludedVariable(module)) {
-                    entities.add(new String[]{module, "Module"});
-                }
-                if (!isExcludedVariable(symbol)) {
-                    entities.add(new String[]{symbol, "Imported Symbol"});
-                }
-                if (alias != null && !isExcludedVariable(alias)) {
-                    entities.add(new String[]{alias, "Alias"});
-                }
-            }
-
 
             m = classPattern.matcher(line);
             if (m.find()) {
@@ -398,10 +339,9 @@ public class ComprehensibilityScoreCalculator {
         reader.close();
         return entities;
     }
-    
-    
+
     // ========== JAVASCRIPT  ANALYSIS ==========
-    
+
     private static void runJavaScriptAnalysis(String path) {
         try {
             List<File> jsFiles = getFilesOrSingle(path, ".js");
@@ -428,41 +368,21 @@ public class ComprehensibilityScoreCalculator {
             System.err.println("Error: " + e.getMessage());
         }
     }
- 
 
+   
     private static List<String[]> extractJavaScriptEntities(String filePath) throws IOException {
         List<String[]> entities = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
 
-
-        Pattern importPattern = Pattern.compile(
-            "\\bimport\\s+(?:.*?\\s+from\\s+)?['\"]([^'\"]+)['\"];?"
-        );
-
         Pattern classPattern = Pattern.compile("\\bclass\\s+(\\w+)");
-
-    
         Pattern functionPattern = Pattern.compile("\\bfunction\\s+(\\w+)\\s*\\(");
         Pattern arrowFunctionPattern = Pattern.compile("\\b(?:const|let|var)\\s+(\\w+)\\s*=\\s*\\([^)]*\\)\\s*=>");
-
-
         Pattern variablePattern = Pattern.compile("\\b(?:let|const|var)\\s+(\\w+)\\b");
 
         while ((line = reader.readLine()) != null) {
             Matcher m;
 
-     
-            m = importPattern.matcher(line);
-            while (m.find()) {
-                String pkgPath = m.group(1);
-                if (!isExcludedVariable(pkgPath)) {
-            
-                    entities.add(new String[]{ pkgPath, "Package" });
-                }
-            }
-
-           
             m = classPattern.matcher(line);
             while (m.find()) {
                 String clsName = m.group(1);
@@ -479,7 +399,6 @@ public class ComprehensibilityScoreCalculator {
                 }
             }
 
-         
             m = arrowFunctionPattern.matcher(line);
             while (m.find()) {
                 String arrowFnName = m.group(1);
@@ -528,12 +447,13 @@ public class ComprehensibilityScoreCalculator {
             System.err.println("Error: " + e.getMessage());
         }
     }
-    
+
     private static List<String[]> extractCppEntities(String filePath) throws IOException {
         List<String[]> entities = new ArrayList<>();
         BufferedReader reader = new BufferedReader(new FileReader(filePath));
         String line;
 
+        // C/C++ still keeps #include, as it's not "import"
         Pattern includePattern = Pattern.compile("^\\s*#include\\s+[<\"](\\w+)");
         Pattern definePattern = Pattern.compile("^\\s*#define\\s+(\\w+)");
         Pattern structPattern = Pattern.compile("\\bstruct\\s+(\\w+)");
@@ -597,11 +517,8 @@ public class ComprehensibilityScoreCalculator {
         return entities;
     }
 
-    
     // ========== File & Dictionary Utilities  ==========
-    
-    
-    // Returns files if path is folder, or single file if valid
+
     private static List<File> getFilesOrSingle(String path, String ext) {
         List<File> files = new ArrayList<>();
         File target = new File(path);
@@ -612,7 +529,7 @@ public class ComprehensibilityScoreCalculator {
         }
         return files;
     }
-    
+
     private static List<File> getFilesWithExtension(File dir, String ext) {
         List<File> files = new ArrayList<>();
         File[] items = dir.listFiles();
@@ -627,7 +544,7 @@ public class ComprehensibilityScoreCalculator {
         }
         return files;
     }
-    
+
     // Loads a dictionary file into a HashSet for lookup
     private static Set<String> loadDictionary(String filePath) {
         Set<String> dictionary = new HashSet<>();
@@ -641,7 +558,7 @@ public class ComprehensibilityScoreCalculator {
         }
         return dictionary;
     }
-    
+
     // Helper to skip excluded variables like i, j
     private static boolean isExcludedVariable(String variable) {
         for (String excluded : EXCLUDED_VARIABLES) {
@@ -649,37 +566,11 @@ public class ComprehensibilityScoreCalculator {
         }
         return false;
     }
-    
-    
-    
 
     // ========== Scoring Logic ==========
+
     private static double evaluateEntityScore(String entity, String type) {
-    	if (type.equals("Import")) {
-    	    // Split on dot or underscore first
-    	    String[] parts = entity.split("[._]");
-    	    double total = 0.0;
-    	    int count = 0;
-    	    for (String part : parts) {
-    	        if (part.isEmpty() || part.matches("^\\d+$")) continue;
-
-    	        // Split part further using camelCase / PascalCase etc.
-    	        String[] subParts = part.split(
-    	            "(?<=[a-z])(?=[A-Z])" +
-    	            "|(?<=[A-Z])(?=[A-Z][a-z])" +
-    	            "|(?<=[a-z])(?=[0-9])" +
-    	            "|(?<=[0-9])(?=[A-Za-z])" +
-    	            "|[-_]"
-    	        );
-
-    	        for (String sub : subParts) {
-    	            if (sub.isEmpty() || sub.equals("_") || sub.matches("^\\d+$")) continue;
-    	            total += evaluateWordScore(sub.toLowerCase());
-    	            count++;
-    	        }
-    	    }
-    	    return (count == 0) ? 0.0 : (total / count);
-    	}
+       
 
         // For Package / Class / Method / Variable, use camelCase & punctuation split rules
         String[] words = entity.split(
@@ -689,7 +580,7 @@ public class ComprehensibilityScoreCalculator {
             "|(?<=[0-9])(?=[A-Za-z])" +
             "|[-_]"
         );
-        
+
         double totalScore = 0.0;
         int validCount = 0;
 
@@ -706,9 +597,6 @@ public class ComprehensibilityScoreCalculator {
 
         return validCount == 0 ? 0.0 : totalScore / validCount;
     }
-
-
-
 
     // Delegates to full or partial match scoring
     private static double evaluateWordScore(String word) {
@@ -742,16 +630,14 @@ public class ComprehensibilityScoreCalculator {
         }
         return 0.0;
     }
-    
-    
+
     // ========== Comprehensibility Score Calculator ==========
-  
+
     private static void calculateComprehensibilityScoreUnified(List<String[]> entities, List<EntityInfo> resultList) {
         for (String[] entityData : entities) {
             String entity = entityData[0];
             String type = entityData[1];
-             double score = evaluateEntityScore(entity, type);
-;
+            double score = evaluateEntityScore(entity, type);
 
             String readability;
             if (score == 1) readability = "Well Readable";
@@ -762,33 +648,26 @@ public class ComprehensibilityScoreCalculator {
         }
     }
 
-    
-    
-    
     // ========== CSV Generation CODE ==========
-    
-    
+
     private static void writeDetailedCSV(Map<File, List<EntityInfo>> fileEntityMap, String language) {
         File outputDir = new File("Output");
-        if (!outputDir.exists()) outputDir.mkdirs(); 
+        if (!outputDir.exists()) outputDir.mkdirs();
 
         String fileName = "Output/Detailed_Comprehensibility_Report.csv";
 
         try (PrintWriter writer = new PrintWriter(fileName)) {
-         
+
             writer.println("Class Name with Path,Class Average,Entity Name,Entity Type,Comprehensibility Score,Comprehensibility Category");
 
             for (Map.Entry<File, List<EntityInfo>> entry : fileEntityMap.entrySet()) {
                 String filePath = entry.getKey().getPath();
                 List<EntityInfo> entities = entry.getValue();
 
-               
                 double avgScore = entities.stream().mapToDouble(e -> e.score).average().orElse(0.0);
 
-             
                 writer.printf("%s,AVERAGE VALUE: %.2f,,,,%n", filePath, avgScore);
 
-           
                 for (EntityInfo info : entities) {
                     writer.printf(",,%s,%s,%.2f,%s%n",
                             info.entity, info.type, info.score, info.readability);
@@ -800,9 +679,6 @@ public class ComprehensibilityScoreCalculator {
             System.err.println("Error writing detailed CSV: " + e.getMessage());
         }
     }
-
-
-
 
     private static void writeSummaryCSV(Map<File, List<EntityInfo>> fileEntityMap, String language) {
         File outputDir = new File("Output");
@@ -835,6 +711,4 @@ public class ComprehensibilityScoreCalculator {
             System.err.println("Error writing summary CSV: " + e.getMessage());
         }
     }
-
-
 }
